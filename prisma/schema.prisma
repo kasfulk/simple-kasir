@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id           String    @id @default(uuid())
+  name         String    @unique
+  description  String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  products     Product[]
+}
+
+model Product {
+  id          String            @id @default(uuid())
+  sku         String            @unique
+  name        String
+  categoryId  String
+  category    Category          @relation(fields: [categoryId], references: [id])
+  description String?
+  price       Int
+  costPrice   Int?
+  stock       Int               @default(0)
+  minStock    Int               @default(5)
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  items       TransactionItem[]
+}
+
+model Transaction {
+  id        String            @id @default(uuid())
+  invoiceNo String            @unique
+  subtotal  Int
+  discount  Int       @default(0)
+  tax       Int
+  total     Int
+  taxRate   Int       @default(10)
+  method    String
+  paid      Int
+  change    Int
+  createdAt DateTime          @default(now())
+  items     TransactionItem[]
+}
+
+model TransactionItem {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  productId     String?
+  product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name          String
+  price         Int
+  quantity      Int
+}
+
+model Setting {
+  id            String   @id @default("default")
+  outletName    String   @default("Simple POS")
+  outletAddress String?
+  outletPhone   String?
+  taxRate       Int      @default(10)
+  receiptFooter String   @default("Terima kasih atas kunjungan Anda")
+  updatedAt     DateTime @updatedAt
+}

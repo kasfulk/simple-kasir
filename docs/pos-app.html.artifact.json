@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "pos-app.html",
+  "entry": "pos-app.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-09-02T05:31:29.234Z",
+  "updatedAt": "2026-09-02T05:31:29.234Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

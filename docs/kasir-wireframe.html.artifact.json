@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "kasir-wireframe.html",
+  "entry": "kasir-wireframe.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-09-02T02:55:57.430Z",
+  "updatedAt": "2026-09-02T02:55:57.430Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}
