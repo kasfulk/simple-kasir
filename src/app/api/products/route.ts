@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { bad, json } from "@/lib/api";
 import { parseProduct } from "@/lib/validation";
+import { requireOwner } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!(await requireOwner(request))) return bad("Akses khusus Owner", 403);
   const parsed = parseProduct(await request.json());
   if ("error" in parsed) return bad(parsed.error);
 

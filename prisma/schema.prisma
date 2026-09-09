@@ -47,6 +47,9 @@ model Transaction {
   paid      Int
   change    Int
   createdAt DateTime          @default(now())
+  cashierId   String?
+  cashierName String?
+  cashier     User?         @relation(fields: [cashierId], references: [id], onDelete: SetNull)
   items     TransactionItem[]
 }
 
@@ -69,4 +72,16 @@ model Setting {
   taxRate       Int      @default(10)
   receiptFooter String   @default("Terima kasih atas kunjungan Anda")
   updatedAt     DateTime @updatedAt
+}
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  name         String
+  passwordHash String
+  // ponytail: SQLite tidak punya enum; divalidasi di lib/validation (OWNER|KASIR)
+  role         String        @default("KASIR")
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
 }

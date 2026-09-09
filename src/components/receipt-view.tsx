@@ -12,6 +12,7 @@ export type ReceiptData = {
   tax: number;
   total: number;
   method: string;
+  cashierName: string | null;
   paid: number;
   change: number;
   createdAt: string;
@@ -47,6 +48,10 @@ export function ReceiptView({ t }: { t: ReceiptData }) {
               <div className="meta-row">
                 <span className="meta-label">Metode</span>
                 <span>{methodLabel(t.method)}</span>
+              </div>
+              <div className="meta-row">
+                <span className="meta-label">Kasir</span>
+                <span>{t.cashierName ?? "-"}</span>
               </div>
             {t.outletPhone && (
               <div className="meta-row">

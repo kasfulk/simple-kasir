@@ -3,10 +3,12 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { bad } from "@/lib/api";
 import { parseCategory } from "@/lib/validation";
+import { requireOwner } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function PUT(request: NextRequest, { params }: Ctx) {
+  if (!(await requireOwner(request))) return bad("Akses khusus Owner", 403);
   const { id } = await params;
   const parsed = parseCategory(await request.json());
   if ("error" in parsed) return bad(parsed.error);
@@ -22,7 +24,8 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: Ctx) {
+export async function DELETE(request: NextRequest, { params }: Ctx) {
+  if (!(await requireOwner(request))) return bad("Akses khusus Owner", 403);
   const { id } = await params;
   const bound = await db.product.count({ where: { categoryId: id } });
   if (bound > 0) {

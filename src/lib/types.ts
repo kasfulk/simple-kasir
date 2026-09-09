@@ -42,4 +42,5 @@ export type TransactionRow = {
   change: number;
   createdAt: string;
   totalQty: number;
+  cashierName: string | null;
 };

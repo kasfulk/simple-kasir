@@ -2,17 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { SessionUser } from "@/lib/auth";
 
 const tabs = [
-  { href: "/", label: "Kasir" },
-  { href: "/produk", label: "Produk" },
-  { href: "/kategori", label: "Kategori" },
-  { href: "/riwayat", label: "Riwayat" },
-  { href: "/pengaturan", label: "Pengaturan" },
+  { href: "/", label: "Kasir", ownerOnly: false },
+  { href: "/produk", label: "Produk", ownerOnly: true },
+  { href: "/kategori", label: "Kategori", ownerOnly: true },
+  { href: "/riwayat", label: "Riwayat", ownerOnly: false },
+  { href: "/pengaturan", label: "Pengaturan", ownerOnly: true },
+  { href: "/pengguna", label: "Pengguna", ownerOnly: true },
 ];
 
-export function Navbar() {
+export function Navbar({ user }: { user: SessionUser }) {
   const pathname = usePathname();
+  const isOwner = user.role === "OWNER";
+
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  };
+
   return (
     <nav className="navbar">
       <Link href="/" className="navbar-brand">
@@ -24,11 +33,24 @@ export function Navbar() {
         <h2>Simple POS</h2>
       </Link>
       <div className="navbar-tabs">
-        {tabs.map((t) => (
-          <Link key={t.href} href={t.href} className={`nav-tab ${pathname === t.href ? "active" : ""}`}>
-            {t.label}
-          </Link>
-        ))}
+        {tabs
+          .filter((t) => !t.ownerOnly || isOwner)
+          .map((t) => (
+            <Link key={t.href} href={t.href} className={`nav-tab ${pathname === t.href ? "active" : ""}`}>
+              {t.label}
+            </Link>
+          ))}
+      </div>
+      <div className="navbar-user">
+        <div className="navbar-id">
+          <span className="navbar-name">{user.name}</span>
+          <span className={`role-chip ${isOwner ? "role-owner" : "role-kasir"}`}>
+            {isOwner ? "Owner" : "Kasir"}
+          </span>
+        </div>
+        <button className="btn btn-ghost" onClick={logout}>
+          Keluar
+        </button>
       </div>
     </nav>
   );

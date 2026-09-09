@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { bad, json } from "@/lib/api";
+import { getSessionFromRequest } from "@/lib/auth";
 
 const METHODS = ["TUNAI", "DEBIT", "QRIS"] as const;
 
@@ -46,6 +47,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const user = await getSessionFromRequest(request);
+  if (!user) return bad("Silakan login", 401);
   const body = await request.json().catch(() => null);
   const o = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
   const method = String(o.method ?? "");
@@ -114,6 +117,8 @@ export async function POST(request: NextRequest) {
           method,
           paid,
           change,
+          cashierId: user.id,
+          cashierName: user.name,
           items: {
             create: lines.map((l) => {
               const p = byId.get(l.productId)!;

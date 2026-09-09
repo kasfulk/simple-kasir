@@ -23,6 +23,7 @@ export default async function StrukPage({ params }: { params: Promise<{ id: stri
     tax: t.tax,
     total: t.total,
     method: t.method,
+    cashierName: t.cashierName,
     paid: t.paid,
     change: t.change,
     taxRate: t.taxRate,
