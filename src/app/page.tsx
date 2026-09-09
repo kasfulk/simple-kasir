@@ -21,6 +21,7 @@ export default function KasirPage() {
   const [categoryId, setCategoryId] = useState("all");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [payOpen, setPayOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [method, setMethod] = useState("TUNAI");
   const [paidInput, setPaidInput] = useState("");
   const [discountInput, setDiscountInput] = useState("");
@@ -98,6 +99,7 @@ export default function KasirPage() {
   const discountedTotal = netSubtotal + discountedTax;
 
   const openPayment = () => {
+    setCartOpen(false);
     setMethod("TUNAI");
     setPaidInput("");
     setDiscountInput("");
@@ -146,15 +148,21 @@ export default function KasirPage() {
   const cashChips = [discountedTotal, ...[20000, 50000, 100000, 200000].filter((n) => n > discountedTotal)];
 
   return (
-    <div className="app">
+    <div className={`app ${cartOpen ? "cart-open" : ""}`}>
+      <div className="cart-backdrop" onClick={() => setCartOpen(false)} />
       <aside className="cart-panel">
         <div className="cart-header">
           <h1>Keranjang</h1>
-          <span className="badge">{totalQty} item</span>
+          <div className="cart-header-actions">
+            <span className="badge">{totalQty} item</span>
+            <button className="btn btn-ghost btn-icon cart-close" onClick={() => setCartOpen(false)} aria-label="Tutup keranjang">
+              ✕
+            </button>
+          </div>
         </div>
         <div className="cart-body">
           {cart.length === 0 ? (
-            <div className="empty-state">Belum ada item. Klik produk di kanan untuk menambahkan.</div>
+            <div className="empty-state">Belum ada item. Ketuk produk untuk menambahkan.</div>
           ) : (
             cart.map((l) => (
               <div key={l.productId} className="cart-item">
@@ -239,6 +247,14 @@ export default function KasirPage() {
           )}
         </div>
       </main>
+      <div className="mobile-cart-bar">
+        <button className="btn btn-secondary" onClick={() => setCartOpen(true)} disabled={cart.length === 0}>
+          Keranjang ({totalQty})
+        </button>
+        <button className="btn btn-primary" onClick={openPayment} disabled={cart.length === 0}>
+          Bayar · {rupiah(total)}
+        </button>
+      </div>
 
       {payOpen && (
         <Modal

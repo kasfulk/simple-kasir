@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { bad, json } from "@/lib/api";
 import { parseProduct } from "@/lib/validation";
+import { requireOwner } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -17,6 +18,7 @@ export async function GET(_request: NextRequest, { params }: Ctx) {
 }
 
 export async function PUT(request: NextRequest, { params }: Ctx) {
+  if (!(await requireOwner(request))) return bad("Akses khusus Owner", 403);
   const { id } = await params;
   const parsed = parseProduct(await request.json());
   if ("error" in parsed) return bad(parsed.error);
@@ -40,7 +42,8 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: Ctx) {
+export async function DELETE(request: NextRequest, { params }: Ctx) {
+  if (!(await requireOwner(request))) return bad("Akses khusus Owner", 403);
   const { id } = await params;
   try {
     await db.product.delete({ where: { id } });

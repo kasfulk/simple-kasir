@@ -2,10 +2,43 @@ import { PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
 
+const USERS = [
+  { username: "owner", name: "Owner Toko", role: "OWNER", password: "owner" },
+  { username: "kasir", name: "Kasir Satu", role: "KASIR", password: "kasir" },
+];
+
+// ponytail: format hash harus identik dgn src/lib/auth.ts (pbkdf2:iterasi:salt:hash)
+async function hashPassword(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 600000 }, key, 256));
+  const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `pbkdf2:600000:${hex(salt)}:${hex(bits)}`;
+}
+
+async function seedUsers() {
+  for (const { password, ...data } of USERS) {
+    const passwordHash = await hashPassword(password);
+    await db.user.upsert({
+      where: { username: data.username },
+      update: { name: data.name, role: data.role, passwordHash, isActive: true },
+      create: { ...data, passwordHash },
+    });
+  }
+}
+
+if (process.argv[2] === "users-only") {
+  await seedUsers();
+  console.log("Akun siap: owner/owner (Owner), kasir/kasir (Kasir)");
+  process.exit(0);
+}
+
 await db.transactionItem.deleteMany();
 await db.transaction.deleteMany();
 await db.product.deleteMany();
 await db.category.deleteMany();
+await db.user.deleteMany();
+await seedUsers();
 
 const catsData = [
   { name: "Makanan", description: "Produk makanan siap saji", displayOrder: 1 },
@@ -49,7 +82,7 @@ const products = [
 const p = {};
 for (const data of products) p[data.sku] = await db.product.create({ data });
 
-async function trx(invoiceNo, lines, method, paid) {
+async function trx(invoiceNo, lines, method, paid, cashierName) {
   const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const tax = Math.round(subtotal * 0.1);
   const total = subtotal + tax;
@@ -62,6 +95,8 @@ async function trx(invoiceNo, lines, method, paid) {
       method,
       paid,
       change: paid - total,
+      cashierId: kasir.id,
+      cashierName,
       items: {
         create: lines.map((l) => ({
           productId: p[l.sku].id,
@@ -77,13 +112,14 @@ async function trx(invoiceNo, lines, method, paid) {
   }
 }
 
+const kasir = await db.user.findUnique({ where: { username: "kasir" } });
 await trx("INV-7F3A91C2", [
   { sku: "IND-GORENG-001", price: 3500, qty: 2 },
   { sku: "AQUA-600-001", price: 4000, qty: 1 },
-], "TUNAI", 15000);
+], "TUNAI", 15000, "Kasir Satu");
 await trx("INV-0D4E82B6", [
   { sku: "ESP-BEANS-001", price: 45000, qty: 1 },
   { sku: "OREO-REG-001", price: 9000, qty: 1 },
-], "QRIS", 59400);
+], "QRIS", 59400, "Kasir Satu");
 
-console.log(`Seed selesai: ${await db.category.count()} kategori, ${await db.product.count()} produk, ${await db.transaction.count()} transaksi`);
+console.log(`Seed selesai: ${await db.user.count()} pengguna, ${await db.category.count()} kategori, ${await db.product.count()} produk, ${await db.transaction.count()} transaksi`);

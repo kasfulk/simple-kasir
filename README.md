@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Simple POS — Aplikasi Kasir
 
-## Getting Started
+Aplikasi kasir sederhana: penjualan, produk, kategori, riwayat transaksi, dan manajemen pengguna. Dibangun dengan Next.js 15 (App Router), Prisma + SQLite, dan Tailwind tidak dipakai — styling CSS murni.
 
-First, run the development server:
+## Fitur Login & Role
+
+- **Owner**: akses penuh — kelola produk, kategori, riwayat, pengaturan outlet/PPN, dan manajemen pengguna.
+- **Kasir**: buka kasir dan riwayat transaksi; tidak dapat mengubah produk/kategori/pengaturan.
+- Sesi memakai cookie HttpOnly bertanda tangan HMAC-SHA256 (7 hari). Password di-hash PBKDF2-SHA256.
+
+### Akun bawaan
+
+Dibuat oleh `npm run db:seed -- users-only` (atau seed penuh):
+
+| Username | Password  | Role  |
+| -------- | --------- | ----- |
+| `owner`  | `owner` | Owner |
+| `kasir`  | `kasir` | Kasir |
+
+Kelola akun lain dari halaman **Pengguna** (khusus Owner). Minimal harus tetap ada satu Owner aktif.
+
+## Menjalankan
 
 ```bash
+npm install
+npm run db:push   # sinkronkan skema Prisma
+npm run db:seed   # data contoh + akun owner/kasir
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000) dan login.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Script
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Perintah | Fungsi |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm run build` / `npm run start` | Build & jalankan produksi |
+| `npm run db:push` | Terapkan `prisma/schema.prisma` ke SQLite |
+| `npm run db:seed` | Reset data contoh |
+| `npm run db:seed -- users-only` | (Re)set akun saja tanpa menyentuh data lain |
 
-## Learn More
+## Catatan
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `DATABASE_URL` di `.env` menunjuk ke `prisma/dev.db`.
+- `SESSION_SECRET` di `.env` dipakai untuk menandatangani cookie sesi (min. 32 karakter).
+- Rencana jangka panjang: migrasi ke PostgreSQL saat siap produksi.

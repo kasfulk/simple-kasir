@@ -85,3 +85,34 @@ export function parseSettings(b: unknown): Parsed<SettingsData> {
 
   return { data: { outletName, outletAddress, outletPhone, taxRate, receiptFooter } };
 }
+
+export type UserData = {
+  username: string;
+  name: string;
+  role: "OWNER" | "KASIR";
+  isActive: boolean;
+  password: string | null;
+};
+
+export function parseUser(
+  b: unknown,
+  opts: { requireUsername?: boolean; requirePassword?: boolean } = {}
+): Parsed<UserData> {
+  const o = asObject(b);
+  const username = String(o.username ?? "").trim().toLowerCase();
+  const name = String(o.name ?? "").trim();
+  const role = o.role === "OWNER" ? "OWNER" : "KASIR";
+  const isActive = o.isActive !== false && o.isActive !== "false";
+  const password = o.password ? String(o.password) : null;
+
+  if (opts.requireUsername && !username) return { error: "Username wajib diisi" };
+  if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
+    return { error: "Username 3-30 karakter: huruf kecil, angka, titik, dash, atau underscore" };
+  }
+  if (!name) return { error: "Nama wajib diisi" };
+  if (name.length > 100) return { error: "Nama maksimal 100 karakter" };
+  if (password !== null && password.length < 6) return { error: "Password minimal 6 karakter" };
+  if (opts.requirePassword && password === null) return { error: "Password wajib diisi" };
+
+  return { data: { username, name, role, isActive, password } };
+}

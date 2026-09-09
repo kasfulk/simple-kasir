@@ -94,13 +94,14 @@ export default function RiwayatPage() {
               <th>Jumlah Item</th>
               <th>Total</th>
               <th>Metode</th>
+              <th>Kasir</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={7}>
                   <div className="empty-state">Belum ada transaksi.</div>
                 </td>
               </tr>
@@ -118,6 +119,7 @@ export default function RiwayatPage() {
                     <span className="price">{rupiah(t.total)}</span>
                   </td>
                   <td>{methodLabel(t.method)}</td>
+                  <td style={{ color: "var(--muted)" }}>{t.cashierName ?? "-"}</td>
                   <td>
                     <div className="actions">
                       <button className="action-btn" title="Lihat Detail" aria-label={`Detail ${t.invoiceNo}`} onClick={() => openDetail(t.id)}>

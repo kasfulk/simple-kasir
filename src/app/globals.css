@@ -64,7 +64,7 @@ a { color: inherit; }
 .nav-tab.active { background: var(--fg); color: #fff; }
 
 /* ===== Kasir layout ===== */
-.app { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+.app { display: flex; height: calc(100vh - 56px); height: calc(100dvh - 56px); overflow: hidden; }
 
 .cart-panel {
   width: 400px;
@@ -559,15 +559,80 @@ tbody tr:hover { background: #fafafa; }
 .receipt.receipt-53 .receipt-meta, .receipt.receipt-53 .item-line, .receipt.receipt-53 .receipt-footer { font-size: 10px; }
 .receipt.receipt-53 .item-name, .receipt.receipt-53 .summary-row { font-size: 11px; }
 
+/* ===== Mobile-only elements ===== */
+.cart-backdrop { display: none; }
+.cart-close { display: none; }
+.mobile-cart-bar { display: none; }
+.cart-header-actions { display: flex; align-items: center; gap: 8px; }
+.product-card:active { transform: translateY(0) scale(0.98); }
+
 /* ===== Responsive ===== */
 @media (max-width: 860px) {
-  .app { flex-direction: column; height: auto; overflow: auto; }
-  .cart-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border); min-height: 300px; }
-  .product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .cart-panel { display: none; }
+  .cart-close { display: inline-flex; }
+  .mobile-cart-bar {
+    display: flex;
+    gap: 10px;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 30;
+  }
+  .mobile-cart-bar .btn { flex: 1; justify-content: center; height: 48px; padding: 0 14px; font-size: 15px; }
+  .app.cart-open .cart-backdrop { display: block; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 40; }
+  .app.cart-open .cart-panel {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    min-width: 0;
+    max-height: 85vh;
+    max-height: 85dvh;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    box-shadow: var(--shadow-lg);
+    z-index: 41;
+  }
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 16px 16px 84px; }
+  .product-header { padding: 12px 16px; }
 }
 @media (max-width: 768px) {
+  .navbar { padding: 0 12px; gap: 8px; }
+  .navbar-tabs { overflow-x: auto; scrollbar-width: none; }
+  .navbar-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { padding: 8px 10px; font-size: 13px; white-space: nowrap; }
+  .navbar-brand, .navbar-user { flex-shrink: 0; }
   .mgmt-page { padding: 16px; }
   .filter-bar { flex-direction: column; align-items: stretch; }
   .form-row { flex-direction: column; gap: 0; }
   .stats-row { grid-template-columns: 1fr; }
 }
+@media (max-width: 640px) {
+  .navbar-id { display: none; }
+  .form-group input, .form-group select, .search-input, .filter-select { font-size: 16px; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-mgmt { max-width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 16px 16px 0 0; }
+  .toast-container { left: 16px; right: 16px; bottom: 76px; }
+}
+
+/* ===== Login ===== */
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 16px; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; width: 100%; max-width: 380px; box-shadow: var(--shadow-lg); }
+.login-brand { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--fg); }
+.login-brand svg { color: var(--accent); }
+.login-brand h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+.login-sub { text-align: center; color: var(--muted); font-size: 14px; margin: 8px 0 20px; }
+.login-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 12px; border-radius: var(--radius); font-size: 13px; margin-bottom: 16px; }
+
+/* ===== Navbar user & role chip ===== */
+.navbar-user { display: flex; align-items: center; gap: 10px; margin-left: 16px; }
+.navbar-id { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.navbar-name { font-size: 13px; font-weight: 600; line-height: 1; }
+.role-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.4; }
+.role-owner { background: #e0e7ff; color: #3730a3; }
+.role-kasir { background: #d1fae5; color: #065f46; }
