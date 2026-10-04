@@ -9,6 +9,7 @@ export type SessionUser = {
   username: string;
   name: string;
   role: Role;
+  tenantId: string;
 };
 
 const SESSION_COOKIE = "sk_session";
@@ -100,7 +101,7 @@ export async function verifySessionToken(token: string | undefined | null): Prom
     if (!ok) return null;
     const payload = JSON.parse(new TextDecoder().decode(b64urlDecode(body))) as SessionPayload;
     if (!payload || typeof payload.exp !== "number" || payload.exp < Date.now()) return null;
-    return { id: payload.id, username: payload.username, name: payload.name, role: payload.role };
+    return { id: payload.id, username: payload.username, name: payload.name, role: payload.role, tenantId: payload.tenantId };
   } catch {
     return null;
   }

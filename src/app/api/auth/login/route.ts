@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
     username: user.username,
     name: user.name,
     role: user.role as Role,
+    tenantId: user.tenantId,
   });
-  const res = NextResponse.json({ id: user.id, username: user.username, name: user.name, role: user.role });
+  const res = NextResponse.json({ id: user.id, username: user.username, name: user.name, role: user.role, tenantId: user.tenantId });
   res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions);
   return res;
 }

@@ -40,7 +40,18 @@ export type TransactionRow = {
   method: string;
   paid: number;
   change: number;
+  status: string;
   createdAt: string;
   totalQty: number;
   cashierName: string | null;
+  customerName: string | null;
+};
+
+export type CustomerRow = {
+  id: string;
+  name: string;
+  phone: string | null;
+  points: number;
+  isActive: boolean;
+  createdAt: string;
 };

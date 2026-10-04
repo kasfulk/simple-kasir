@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui";
 import { useToast } from "@/components/toast";
 import { rupiah } from "@/lib/format";
-import type { CategoryWithCount, ProductWithCategory, AppSettings } from "@/lib/types";
+import type { CategoryWithCount, ProductWithCategory, AppSettings, CustomerRow } from "@/lib/types";
+import { pointsToRp, usablePoints } from "@/lib/loyalty";
 import { getJSON } from "@/lib/fetch";
 
 type CartLine = { productId: string; name: string; price: number; quantity: number; stock: number };
@@ -24,18 +25,23 @@ export default function KasirPage() {
   const [cartOpen, setCartOpen] = useState(false);
   const [method, setMethod] = useState("TUNAI");
   const [paidInput, setPaidInput] = useState("");
-  const [discountInput, setDiscountInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [discountInput, setDiscountInput] = useState("");
+  const [pointsInput, setPointsInput] = useState("");
+  const [customers, setCustomers] = useState<CustomerRow[]>([]);
+  const [customerId, setCustomerId] = useState("");
 
   useEffect(() => {
     Promise.all([
       getJSON<{ items: ProductWithCategory[] }>("/api/products?status=active&pageSize=500"),
       getJSON<CategoryWithCount[]>("/api/categories"),
       getJSON<AppSettings>("/api/settings"),
-    ]).then(([p, c, s]) => {
+      getJSON<CustomerRow[]>("/api/customers"),
+    ]).then(([p, c, s, cu]) => {
       setProducts(p?.items ?? []);
       setCategories(c ?? []);
       setSettings(s);
+      setCustomers((cu ?? []).filter((x) => x.isActive));
     });
   }, []);
 
@@ -95,14 +101,21 @@ export default function KasirPage() {
   const discountValid = discountInput === "" || (/^\d+$/.test(discountInput) && discountValue <= subtotal);
   const safeDiscount = discountValid ? discountValue : 0;
   const netSubtotal = subtotal - safeDiscount;
-  const discountedTax = Math.round((netSubtotal * taxRate) / 100);
-  const discountedTotal = netSubtotal + discountedTax;
+  const customer = customers.find((c) => c.id === customerId) ?? null;
+  const pointsRequested = customer ? Math.max(0, Number(pointsInput) || 0) : 0;
+  const pointsUsed = customer ? usablePoints(pointsRequested, customer.points, netSubtotal) : 0;
+  const redeemRp = pointsToRp(pointsUsed);
+  const finalNet = netSubtotal - redeemRp;
+  const discountedTax = Math.round((finalNet * taxRate) / 100);
+  const discountedTotal = finalNet + discountedTax;
 
   const openPayment = () => {
     setCartOpen(false);
     setMethod("TUNAI");
     setPaidInput("");
     setDiscountInput("");
+    setCustomerId("");
+    setPointsInput("");
     setPayOpen(true);
   };
 
@@ -126,8 +139,10 @@ export default function KasirPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method,
-          paid,
           discount: safeDiscount,
+          paid,
+          points: pointsUsed,
+          customerId: customerId || undefined,
           items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity })),
         }),
       });
@@ -294,6 +309,40 @@ export default function KasirPage() {
           <div className="summary-row total" style={{ borderBottom: "none", padding: 0, margin: "0 0 14px" }}>
             <span>Total Bayar</span>
             <span className="amount">{rupiah(discountedTotal)}</span>
+          </div>
+          <div className="form-group">
+            <label htmlFor="pay-customer">Pelanggan (opsional)</label>
+            <select id="pay-customer" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
+              <option value="">— Tanpa pelanggan —</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {c.points} poin
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="pay-points">Tukar Poin{customer ? ` (tersedia ${customer.points})` : " (pilih pelanggan dulu)"}</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                id="pay-points"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="0"
+                value={pointsInput}
+                disabled={!customer}
+                onChange={(e) => setPointsInput(e.target.value)}
+              />
+              {customer && (
+                <button type="button" className="btn btn-ghost" onClick={() => setPointsInput(String(customer.points))}>
+                  Pakai Semua
+                </button>
+              )}
+            </div>
+            {pointsUsed > 0 && (
+              <p style={{ margin: "4px 0 0" }}>{pointsUsed} poin = -{rupiah(redeemRp)}</p>
+            )}
           </div>
           <div className="form-group">
             <label htmlFor="pay-method">Metode Pembayaran</label>

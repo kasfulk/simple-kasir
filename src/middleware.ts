@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth";
 
-const OWNER_PAGES = ["/produk", "/kategori", "/pengaturan", "/pengguna"];
+const OWNER_PAGES = ["/produk", "/kategori", "/pengaturan", "/pengguna", "/dashboard", "/pelanggan", "/stok-masuk"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

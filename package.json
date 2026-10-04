@@ -7,7 +7,9 @@
     "build": "next build --turbopack",
     "start": "next start",
     "db:push": "prisma db push",
-    "db:seed": "node prisma/seed.mjs"
+    "db:seed": "node prisma/seed.mjs",
+    "db:tenants": "node prisma/tenant-backfill.mjs",
+    "test": "node --test src/lib/core.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

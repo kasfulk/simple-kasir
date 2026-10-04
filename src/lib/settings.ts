@@ -9,7 +9,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   receiptFooter: "Terima kasih atas kunjungan Anda",
 };
 
-export async function getSettings(): Promise<AppSettings> {
-  const s = await db.setting.findUnique({ where: { id: "default" } });
+export async function getSettings(tenantId: string): Promise<AppSettings> {
+  const s = await db.setting.findUnique({ where: { tenantId } });
   return s ?? DEFAULT_SETTINGS;
 }

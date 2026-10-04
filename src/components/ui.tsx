@@ -47,11 +47,13 @@ export function Modal({
 export function ConfirmDialog({
   title,
   message,
+  confirmLabel,
   onCancel,
   onConfirm,
 }: {
   title: string;
   message: string;
+  confirmLabel?: string;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -75,9 +77,7 @@ export function ConfirmDialog({
           <button className="btn btn-secondary" onClick={onCancel}>
             Batal
           </button>
-          <button className="btn btn-danger-solid" onClick={onConfirm}>
-            Hapus
-          </button>
+          <button className="btn btn-danger-solid" onClick={onConfirm}>{confirmLabel ?? "Hapus"}</button>
         </div>
       </div>
     </div>

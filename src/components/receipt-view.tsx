@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { methodLabel, rupiah, tanggalWaktu } from "@/lib/format";
+import { POINT_RP } from "@/lib/loyalty";
 
 export type ReceiptData = {
   invoiceNo: string;
   subtotal: number;
   discount: number;
+  pointsUsed: number;
   taxRate: number;
   tax: number;
   total: number;
@@ -15,6 +17,8 @@ export type ReceiptData = {
   cashierName: string | null;
   paid: number;
   change: number;
+  status?: string;
+  customerName?: string | null;
   createdAt: string;
   outletName: string;
   outletAddress: string | null;
@@ -53,6 +57,12 @@ export function ReceiptView({ t }: { t: ReceiptData }) {
                 <span className="meta-label">Kasir</span>
                 <span>{t.cashierName ?? "-"}</span>
               </div>
+              {t.customerName && (
+                <div className="meta-row">
+                  <span className="meta-label">Pelanggan</span>
+                  <span>{t.customerName}</span>
+                </div>
+              )}
             {t.outletPhone && (
               <div className="meta-row">
                 <span className="meta-label">Telp</span>
@@ -61,6 +71,7 @@ export function ReceiptView({ t }: { t: ReceiptData }) {
             )}
             </div>
           </div>
+          {t.status === "VOID" && <div className="receipt-void">*** DIBATALKAN (VOID) ***</div>}
 
           <div className="receipt-body">
             <div className="item-list">
@@ -87,6 +98,12 @@ export function ReceiptView({ t }: { t: ReceiptData }) {
               <div className="summary-row">
                 <span>Diskon</span>
                 <span>-{rupiah(t.discount)}</span>
+              </div>
+            )}
+            {t.pointsUsed > 0 && (
+              <div className="summary-row">
+                <span>Poin Ditukar ({t.pointsUsed})</span>
+                <span>-{rupiah(t.pointsUsed * POINT_RP)}</span>
               </div>
             )}
             {t.taxRate > 0 && (
