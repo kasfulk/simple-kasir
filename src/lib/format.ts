@@ -4,6 +4,7 @@ const METHOD_LABEL: Record<string, string> = {
   TUNAI: "Tunai",
   DEBIT: "Kartu Debit",
   QRIS: "QRIS",
+  INVOICE: "Invoice",
 };
 
 export const methodLabel = (m: string) => METHOD_LABEL[m] ?? m;

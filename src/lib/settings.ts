@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   outletPhone: null,
   taxRate: 10,
   receiptFooter: "Terima kasih atas kunjungan Anda",
+  logo: null,
 };
 
 export async function getSettings(tenantId: string): Promise<AppSettings> {

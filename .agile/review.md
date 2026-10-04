@@ -19,3 +19,14 @@ Semua query di 13 route file ber-scope `tenantId` dari sesi (grep audit penuh); 
 
 ## Verdict: **PASS**
 Alasan: semua acceptance criteria terbukti di verification.md; tidak ada temuan terbuka; tidak ada scope creep di luar plan yang disetujui.
+
+## Review — Fitur: INVOICE + Logo Struk + Unduh PNG (2026-10-04)
+
+Scope: allowlist metode (2 route) + label/format, modal bayar & filter riwayat, `Setting.logo` (schema → `parseSettings` → upload UI → struk), `lib/receipt-image.ts`, CSS struk. Tanpa dependensi baru.
+
+- Konsistensi: audit `grep "QRIS"` — semua situs daftar metode + label map ditambah INVOICE; perilaku TUNAI/DEBIT/QRIS tak berubah.
+- Keamanan: logo divalidasi di `parseSettings` (data URL image + batas ukuran) sebagai trust boundary; render `<img>` data URL; canvas bebas taint (sumber hanya data URL).
+- Bug ditemukan & diperbaiki: serialisasi SVG string-concat rusak oleh `&`/`<` (IMG_ONERROR) → diganti DOM + `XMLSerializer`; dibuktikan ulang lewat unduh nyata di Chromium.
+- Scope terjaga: INVOICE = non-tunai lunas (bukan AR); hanya kolom opsional di schema.
+
+## Verdict: **PASS**

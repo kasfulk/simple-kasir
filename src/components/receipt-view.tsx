@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { methodLabel, rupiah, tanggalWaktu } from "@/lib/format";
 import { POINT_RP } from "@/lib/loyalty";
+import { nodeToPngDataUrl } from "@/lib/receipt-image";
 
 export type ReceiptData = {
   invoiceNo: string;
@@ -24,20 +25,40 @@ export type ReceiptData = {
   outletAddress: string | null;
   outletPhone: string | null;
   receiptFooter: string;
+  logo: string | null;
   items: { id: string; name: string; price: number; quantity: number }[];
 };
 
 export function ReceiptView({ t }: { t: ReceiptData }) {
   const [paper, setPaper] = useState<"53" | "80">("80");
   const width = paper === "53" ? "50mm" : "76mm";
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const downloadImage = async () => {
+    if (!receiptRef.current) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await nodeToPngDataUrl(receiptRef.current, 2);
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `struk-${t.invoiceNo}.png`;
+      a.click();
+    } catch {
+      window.alert("Gagal membuat gambar struk");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <>
       {/* ponytail: @page dinamis via style tag inline; pindah ke CSS print terpisah bila butuh preset kertas lain */}
       <style>{`@media print { @page { size: ${paper === "53" ? "53mm" : "80mm"} auto; margin: 3mm; } }`}</style>
       <div className="struk-page">
-        <div className={`receipt ${paper === "53" ? "receipt-53" : ""}`} style={{ width }}>
+        <div ref={receiptRef} className={`receipt ${paper === "53" ? "receipt-53" : ""}`} style={{ width }}>
           <div className="receipt-header">
+            {t.logo && <img className="receipt-logo" src={t.logo} alt={t.outletName} />}
             <h1 className="receipt-brand">{t.outletName}</h1>
             {t.outletAddress ? <p className="receipt-branch">{t.outletAddress}</p> : null}
             <div className="receipt-meta">
@@ -150,6 +171,9 @@ export function ReceiptView({ t }: { t: ReceiptData }) {
           <div className="paper-actions">
             <button className="btn-print" onClick={() => window.print()}>
               Cetak Struk
+            </button>
+            <button className="btn-print" onClick={downloadImage} disabled={downloading}>
+              {downloading ? "Menyiapkan…" : "Unduh Gambar"}
             </button>
             <Link className="btn-close" href="/riwayat">
               Tutup

@@ -130,6 +130,7 @@ model Setting {
   outletPhone   String?
   taxRate       Int      @default(10)
   receiptFooter String   @default("Terima kasih atas kunjungan Anda")
+  logo          String?
   updatedAt     DateTime @updatedAt
 }
 

@@ -14,3 +14,18 @@ Tiap acceptance criteria dibuktikan command + output aktual (server produksi :32
 | 8 | Typecheck / unit / build | `tsc --noEmit` exit 0; `node --test` 5/5; `npm run build` sukses |
 
 Verdict: **SEMUA KRITERIA TERBUKTI**. Server dihentikan, DB dikembalikan ke seed bersih setelah pengambilan bukti.
+
+## Verification — Fitur: INVOICE + Logo Struk + Unduh PNG (2026-10-04)
+
+| # | Kriteria | Bukti (aksi → output) |
+|---|---|---|
+| 1 | INVOICE diterima server, non-tunai lunas | `POST method=INVOICE` → 201, `PAID:4400 CHANGE:0 TOTAL:4400` |
+| 2 | INVOICE di UI kasir & filter riwayat | modal bayar berisi opsi INVOICE + pesan tagihan; checkout UI sukses → struk meta "Invoice"; filter riwayat punya opsi INVOICE (`RIWAYAT_INVOICE:true`) |
+| 3 | Filter & CSV mengikuti metode | `GET ?method=INVOICE` → item `method:"INVOICE"`; CSV → BOM + baris INVOICE (diverifikasi sebelum void) |
+| 4 | Logo tervalidasi & tersimpan | PUT logo valid → tersimpan; PUT invalid → 400; upload UI → toast "Pengaturan berhasil disimpan" |
+| 5 | Logo tampil di struk | `img.receipt-logo` di struk; tersimpan === tampil (`equal:true`) |
+| 6 | Unduh struk PNG nyata | klik "Unduh Gambar" → `struk-INV-AE709C36.png`, signature `89 50 4e 47 0d 0a 1a 0a`; probe pipeline `ok:true` 287×525 |
+| 7 | Regresi: fitur lama utuh | node --test 8/8; tsc 0; build sukses; void TX uji 200 (fitur void bekerja) |
+| 8 | Kebersihan data uji | 2 TX void, logo `null`, /tmp bersih, server dihentikan |
+
+Verdict: **SEMUA KRITERIA TERBUKTI**.

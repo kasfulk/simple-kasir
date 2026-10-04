@@ -27,6 +27,7 @@ export type AppSettings = {
   outletPhone: string | null;
   taxRate: number;
   receiptFooter: string;
+  logo: string | null;
 };
 
 export type TransactionRow = {

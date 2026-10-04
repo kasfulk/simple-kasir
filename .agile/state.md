@@ -54,3 +54,22 @@ classification: STANDARD
 
 ## Bukti
 - node --test 7/7 • tsc --noEmit 0 error • next build sukses • smoke e2e 15/15 PASS (login, earn, tolak > saldo, redeem, total & saldo benar, struk "Poin Ditukar", void memulihkan saldo).
+
+## Fitur — Metode INVOICE + logo struk + unduh PNG (2026-10-04)
+
+```yaml
+stage: COMPLETE
+status: DONE
+classification: STANDARD
+```
+
+- INVOICE: `METHODS` ditambah di `api/transactions/route.ts` & `api/export/transactions/route.ts`; label "Invoice" di `lib/format.ts`; opsi di modal bayar (`page.tsx`) + pesan "Pembayaran dicatat sebagai tagihan invoice"; opsi filter di `riwayat/page.tsx`. Non-tunai lunas (`paid=total, change=0`) — ponytail: piutang/AR terpisah bila dibutuhkan.
+- Logo struk: `Setting.logo String?` (db push); `parseSettings` validasi data URL `image/(png|jpe?g|webp)` maks 300.000 char; upload UI di `/pengaturan` (downscale 512px, fallback JPEG 0.85); header struk `img.receipt-logo` (`receipt-view.tsx`, dihubungkan dari `struk/[id]/page.tsx`).
+- Unduh PNG zero-dep: `lib/receipt-image.ts` (clone + inline computed style + @font-face, SVG foreignObject via DOM + XMLSerializer, canvas 2×); tombol "Unduh Gambar".
+- TDD: tes `parseSettings` logo RED→GREEN.
+
+## Bukti (fitur INVOICE/logo/PNG)
+- node --test 8/8 • tsc --noEmit 0 • next build sukses (rebuild bersih; `.next` lama terkorupsi karena build bersamaan dengan dev server).
+- API produksi :3004: PUT logo tersimpan, logo invalid ditolak 400, POST INVOICE 201 (`PAID:4400 CHANGE:0`), filter `?method=INVOICE` + CSV berisi baris INVOICE (diverifikasi sebelum void).
+- Browser: checkout UI INVOICE → struk "Invoice" + logo + "Kembali Rp 0"; unduh PNG asli (signature `89 50 4e 47`, `struk-INV-AE709C36.png`); upload logo via UI → toast → logo tersimpan identik dengan struk (`equal:true`); opsi INVOICE di riwayat; screenshot struk 87KB.
+- Cleanup: 2 TX uji di-void, logo direset `null`, file /tmp dihapus, server dihentikan.
