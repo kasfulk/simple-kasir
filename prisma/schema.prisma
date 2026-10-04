@@ -7,20 +7,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Tenant {
+  id           String        @id @default(uuid())
+  name         String
+  createdAt    DateTime      @default(now())
+  users        User[]
+  categories   Category[]
+  products     Product[]
+  transactions Transaction[]
+  customers    Customer[]
+  stockIns     StockIn[]
+  settings     Setting[]
+}
+
 model Category {
   id           String    @id @default(uuid())
-  name         String    @unique
+  name         String
   description  String?
   displayOrder Int       @default(0)
   isActive     Boolean   @default(true)
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id])
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   products     Product[]
+
+  @@unique([tenantId, name])
 }
 
 model Product {
   id          String            @id @default(uuid())
-  sku         String            @unique
+  sku         String
   name        String
   categoryId  String
   category    Category          @relation(fields: [categoryId], references: [id])
@@ -30,27 +47,38 @@ model Product {
   stock       Int               @default(0)
   minStock    Int               @default(5)
   isActive    Boolean           @default(true)
+  tenantId    String
+  tenant      Tenant            @relation(fields: [tenantId], references: [id])
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   items       TransactionItem[]
+  stockIns    StockIn[]
+
+  @@unique([tenantId, sku])
 }
 
 model Transaction {
-  id        String            @id @default(uuid())
-  invoiceNo String            @unique
-  subtotal  Int
-  discount  Int       @default(0)
-  tax       Int
-  total     Int
-  taxRate   Int       @default(10)
-  method    String
-  paid      Int
-  change    Int
-  createdAt DateTime          @default(now())
+  id          String            @id @default(uuid())
+  invoiceNo   String            @unique
+  subtotal    Int
+  discount    Int               @default(0)
+  pointsUsed  Int               @default(0)
+  tax         Int
+  total       Int
+  taxRate     Int               @default(10)
+  method      String
+  paid        Int
+  change      Int
+  status      String            @default("SELESAI")
+  createdAt   DateTime          @default(now())
+  tenantId    String
+  tenant      Tenant            @relation(fields: [tenantId], references: [id])
   cashierId   String?
   cashierName String?
-  cashier     User?         @relation(fields: [cashierId], references: [id], onDelete: SetNull)
-  items     TransactionItem[]
+  cashier     User?             @relation(fields: [cashierId], references: [id], onDelete: SetNull)
+  customerId  String?
+  customer    Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items       TransactionItem[]
 }
 
 model TransactionItem {
@@ -61,11 +89,42 @@ model TransactionItem {
   product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
   name          String
   price         Int
+  costPrice     Int?
   quantity      Int
 }
 
+model Customer {
+  id           String        @id @default(uuid())
+  tenantId     String
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  name         String
+  phone        String?
+  points       Int           @default(0)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+
+  @@unique([tenantId, name])
+}
+
+model StockIn {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitCost  Int?
+  note      String?
+  userId    String
+  createdAt DateTime @default(now())
+}
+
 model Setting {
-  id            String   @id @default("default")
+  id            String   @id @default(uuid())
+  tenantId      String   @unique
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
   outletName    String   @default("Simple POS")
   outletAddress String?
   outletPhone   String?
@@ -73,6 +132,7 @@ model Setting {
   receiptFooter String   @default("Terima kasih atas kunjungan Anda")
   updatedAt     DateTime @updatedAt
 }
+
 model User {
   id           String        @id @default(uuid())
   username     String        @unique
@@ -81,6 +141,8 @@ model User {
   // ponytail: SQLite tidak punya enum; divalidasi di lib/validation (OWNER|KASIR)
   role         String        @default("KASIR")
   isActive     Boolean       @default(true)
+  tenantId     String
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   transactions Transaction[]

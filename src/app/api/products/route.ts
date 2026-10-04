@@ -3,9 +3,11 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { bad, json } from "@/lib/api";
 import { parseProduct } from "@/lib/validation";
-import { requireOwner } from "@/lib/auth";
+import { getSessionFromRequest, requireOwner } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
+  const user = await getSessionFromRequest(request);
+  if (!user) return bad("Silakan login", 401);
   const sp = request.nextUrl.searchParams;
   const q = sp.get("q")?.trim() ?? "";
   const categoryId = sp.get("categoryId") ?? "";
@@ -15,6 +17,7 @@ export async function GET(request: NextRequest) {
   const pageSize = Math.min(1000, Math.max(1, Number(sp.get("pageSize")) || 20));
 
   const where = {
+    tenantId: user.tenantId,
     ...(q ? { OR: [{ name: { contains: q } }, { sku: { contains: q } }] } : {}),
     ...(categoryId ? { categoryId } : {}),
     ...(status === "active" ? { isActive: true } : status === "inactive" ? { isActive: false } : {}),
@@ -42,16 +45,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await requireOwner(request))) return bad("Akses khusus Owner", 403);
+  const me = await requireOwner(request);
+  if (!me) return bad("Akses khusus Owner", 403);
   const parsed = parseProduct(await request.json());
   if ("error" in parsed) return bad(parsed.error);
 
-  const cat = await db.category.findUnique({ where: { id: parsed.data.categoryId } });
+  const cat = await db.category.findFirst({ where: { id: parsed.data.categoryId, tenantId: me.tenantId } });
   if (!cat || !cat.isActive) return bad("Kategori tidak valid atau nonaktif");
 
   try {
     const product = await db.product.create({
-      data: parsed.data,
+      data: { ...parsed.data, tenantId: me.tenantId },
       include: { category: { select: { id: true, name: true } } },
     });
     return NextResponse.json(product, { status: 201 });

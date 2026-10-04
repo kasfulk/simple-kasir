@@ -116,3 +116,17 @@ export function parseUser(
 
   return { data: { username, name, role, isActive, password } };
 }
+
+export type CustomerData = { name: string; phone: string | null; isActive: boolean };
+
+export function parseCustomer(b: unknown): Parsed<CustomerData> {
+  const o = asObject(b);
+  const name = String(o.name ?? "").trim();
+  const phone = o.phone ? String(o.phone).trim().slice(0, 30) : null;
+  const isActive = o.isActive !== false && o.isActive !== "false";
+
+  if (!name) return { error: "Nama pelanggan wajib diisi" };
+  if (name.length > 100) return { error: "Nama pelanggan maksimal 100 karakter" };
+
+  return { data: { name, phone, isActive } };
+}

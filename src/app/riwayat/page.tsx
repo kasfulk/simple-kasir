@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Modal } from "@/components/ui";
+import { ConfirmDialog, Modal } from "@/components/ui";
+import { useToast } from "@/components/toast";
 import { methodLabel, rupiah, tanggalWaktu } from "@/lib/format";
 import type { TransactionRow } from "@/lib/types";
 import { getJSON } from "@/lib/fetch";
@@ -29,6 +30,10 @@ export default function RiwayatPage() {
   const [rows, setRows] = useState<TransactionRow[]>([]);
   const [total, setTotal] = useState(0);
   const [detail, setDetail] = useState<Detail | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [voiding, setVoiding] = useState(false);
+  const [voidTarget, setVoidTarget] = useState<TransactionRow | null>(null);
+  const toast = useToast();
 
   const load = useCallback(async () => {
     const params = new URLSearchParams({ page: String(page), pageSize: "20" });
@@ -43,6 +48,10 @@ export default function RiwayatPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    getJSON<{ role: string }>("/api/auth/me").then((u) => setIsOwner(u?.role === "OWNER"));
+  }, []);
+
   const perPage = 20;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
 
@@ -50,6 +59,24 @@ export default function RiwayatPage() {
     const d = await getJSON<Detail>(`/api/transactions/${id}`);
     if (!d) return;
     setDetail(d);
+  };
+
+  const voidTx = async () => {
+    if (!voidTarget) return;
+    setVoiding(true);
+    try {
+      const res = await fetch(`/api/transactions/${voidTarget.id}/void`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast(data?.message ?? "Gagal membatalkan transaksi", "error");
+        return;
+      }
+      toast("Transaksi dibatalkan, stok dikembalikan");
+      setVoidTarget(null);
+      await load();
+    } finally {
+      setVoiding(false);
+    }
   };
 
   return (
@@ -83,6 +110,12 @@ export default function RiwayatPage() {
           <option value="DEBIT">Kartu Debit</option>
           <option value="QRIS">QRIS</option>
         </select>
+        <a
+          className="btn btn-secondary"
+          href={`/api/export/transactions?${new URLSearchParams({ ...(date ? { date } : {}), ...(method ? { method } : {}) })}`}
+        >
+          Ekspor CSV
+        </a>
       </div>
 
       <div className="table-container">
@@ -110,6 +143,7 @@ export default function RiwayatPage() {
                 <tr key={t.id}>
                   <td>
                     <span className="sku">{t.invoiceNo}</span>
+                    {t.status === "VOID" && <span className="badge-status badge-inactive">VOID</span>}
                   </td>
                   <td>{tanggalWaktu(t.createdAt)}</td>
                   <td>
@@ -136,6 +170,15 @@ export default function RiwayatPage() {
                           <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
                       </Link>
+                      {isOwner && t.status !== "VOID" && (
+                        <button className="action-btn" title="Void Transaksi" aria-label={`Void ${t.invoiceNo}`} onClick={() => setVoidTarget(t)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -206,6 +249,15 @@ export default function RiwayatPage() {
             </Link>
           </div>
         </Modal>
+      )}
+      {voidTarget && (
+        <ConfirmDialog
+          title="Void Transaksi"
+          message={`Batalkan ${voidTarget.invoiceNo}? Stok akan dikembalikan dan transaksi dikeluarkan dari omzet.`}
+          confirmLabel="Void"
+          onCancel={() => setVoidTarget(null)}
+          onConfirm={voidTx}
+        />
       )}
     </div>
   );
