@@ -50,6 +50,41 @@ export default function PengaturanPage() {
       setSaving(false);
     }
   };
+  const pickLogo = (file: File | null) => {
+    if (!file || !form) return;
+    if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) {
+      toast("Logo harus berkas PNG/JPG/WebP", "error");
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, 512 / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        toast("Canvas tidak tersedia", "error");
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      let data = canvas.toDataURL("image/png");
+      if (data.length > 300_000) data = canvas.toDataURL("image/jpeg", 0.85);
+      if (data.length > 300_000) {
+        toast("Logo terlalu besar setelah diperkecil", "error");
+        return;
+      }
+      setForm({ ...form, logo: data });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      toast("Gagal membaca gambar", "error");
+    };
+    img.src = url;
+  };
 
   if (!form) {
     return (
@@ -90,6 +125,27 @@ export default function PengaturanPage() {
             placeholder="Nama outlet"
           />
           <div className="form-hint">Tampil di header struk</div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="s-logo">Logo Struk</label>
+          {form.logo && (
+            <img src={form.logo} alt="Pratinjau logo" style={{ maxHeight: 64, display: "block", marginBottom: 8 }} />
+          )}
+          <input
+            id="s-logo"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={(e) => {
+              pickLogo(e.target.files?.[0] ?? null);
+              e.target.value = "";
+            }}
+          />
+          {form.logo && (
+            <button type="button" className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setForm({ ...form, logo: null })}>
+              Hapus Logo
+            </button>
+          )}
+          <div className="form-hint">Tampil di header struk, otomatis diperkecil ke 512px. Klik Simpan untuk menerapkan.</div>
         </div>
         <div className="form-group">
           <label htmlFor="s-addr">Alamat</label>

@@ -4,7 +4,7 @@ import { bad } from "@/lib/api";
 import { getSessionFromRequest } from "@/lib/auth";
 import { toCsv, csvResponse } from "@/lib/csv";
 
-const METHODS = ["TUNAI", "DEBIT", "QRIS"] as const;
+const METHODS = ["TUNAI", "DEBIT", "QRIS", "INVOICE"] as const;
 
 export async function GET(request: NextRequest) {
   const user = await getSessionFromRequest(request);

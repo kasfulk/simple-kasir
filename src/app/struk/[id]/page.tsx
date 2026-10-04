@@ -37,6 +37,7 @@ export default async function StrukPage({ params }: { params: Promise<{ id: stri
     outletAddress: s.outletAddress,
     outletPhone: s.outletPhone,
     receiptFooter: s.receiptFooter,
+    logo: s.logo,
     createdAt: t.createdAt.toISOString(),
     items: t.items.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
   };

@@ -109,6 +109,7 @@ export default function RiwayatPage() {
           <option value="TUNAI">Tunai</option>
           <option value="DEBIT">Kartu Debit</option>
           <option value="QRIS">QRIS</option>
+          <option value="INVOICE">Invoice</option>
         </select>
         <a
           className="btn btn-secondary"

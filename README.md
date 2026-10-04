@@ -53,6 +53,10 @@ Buka [http://localhost:3000](http://localhost:3000) dan login.
 - **Stok Masuk**: penerimaan barang menaikkan stok; opsi mengisi ulang harga pokok. Stok otomatis terpotong saat penjualan (race-safe).
 - **Void Transaksi** (Owner): pembatalan sekali arah — stok dikembalikan, poin yang ditukar dipulihkan (poin yang didapat dicabut), transaksi dikeluarkan dari omzet, riwayat tetap utuh.
 - **Ekspor CSV**: riwayat transaksi (mengikuti filter tanggal/metode) & daftar produk; BOM UTF-8 agar aman dibuka Excel.
+- **Metode Pembayaran**: Tunai, Debit, QRIS, dan Invoice (non-tunai dicatat lunas — kembalian Rp 0).
+- **Logo Struk**: upload gambar di Pengaturan (otomatis diperkecil ≤512px; PNG/JPG/WebP, maks ±220KB) — tampil di header struk layar & cetak.
+- **Unduh Struk PNG**: tombol "Unduh Gambar" menyimpan struk aktif sebagai PNG resolusi 2× (zero-dependency).
+
 ## Catatan
 
 - `DATABASE_URL` di `.env` menunjuk ke `prisma/dev.db`.

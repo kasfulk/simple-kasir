@@ -68,6 +68,7 @@ export type SettingsData = {
   outletPhone: string | null;
   taxRate: number;
   receiptFooter: string;
+  logo: string | null;
 };
 
 export function parseSettings(b: unknown): Parsed<SettingsData> {
@@ -79,11 +80,18 @@ export function parseSettings(b: unknown): Parsed<SettingsData> {
   const receiptFooter =
     String(o.receiptFooter ?? "").trim().slice(0, 200) || "Terima kasih atas kunjungan Anda";
 
+  const logo = typeof o.logo === "string" && o.logo ? o.logo : null;
+  if (logo && !/^data:image\/(png|jpe?g|webp);base64,/.test(logo)) {
+    return { error: "Logo harus berkas gambar PNG/JPG/WebP" };
+  }
+  if (logo && logo.length > 300_000) {
+    return { error: "Logo terlalu besar (maksimal ±220KB)" };
+  }
   if (!outletName) return { error: "Nama outlet wajib diisi" };
   if (outletName.length > 100) return { error: "Nama outlet maksimal 100 karakter" };
   if (!Number.isInteger(taxRate) || taxRate < 0 || taxRate > 100) return { error: "PPN harus angka bulat 0-100" };
 
-  return { data: { outletName, outletAddress, outletPhone, taxRate, receiptFooter } };
+  return { data: { outletName, outletAddress, outletPhone, taxRate, receiptFooter, logo } };
 }
 
 export type UserData = {

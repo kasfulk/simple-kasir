@@ -5,7 +5,7 @@ import { bad, json } from "@/lib/api";
 import { getSessionFromRequest } from "@/lib/auth";
 import { loyaltyPoints, pointsToRp } from "@/lib/loyalty";
 
-const METHODS = ["TUNAI", "DEBIT", "QRIS"] as const;
+const METHODS = ["TUNAI", "DEBIT", "QRIS", "INVOICE"] as const; // ponytail: INVOICE = non-tunai lunas (paid=total); sistem piutang/AR terpisah bila nanti dibutuhkan
 
 export async function GET(request: NextRequest) {
   const user = await getSessionFromRequest(request);

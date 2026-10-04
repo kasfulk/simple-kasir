@@ -492,6 +492,7 @@ tbody tr:hover { background: #fafafa; }
   overflow: hidden;
 }
 .receipt-header { padding: 24px 24px 16px; text-align: center; border-bottom: 2px dashed var(--border); }
+.receipt-logo { display: block; max-height: 56px; max-width: 60%; margin: 0 auto 8px; object-fit: contain; }
 .receipt-brand { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 4px; }
 .receipt-branch { font-size: 13px; color: var(--muted); margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.5px; }
 .receipt-meta { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); text-align: left; }

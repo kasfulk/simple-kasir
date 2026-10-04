@@ -350,6 +350,7 @@ export default function KasirPage() {
               <option value="TUNAI">Tunai</option>
               <option value="DEBIT">Kartu Debit</option>
               <option value="QRIS">QRIS</option>
+              <option value="INVOICE">Invoice</option>
             </select>
           </div>
           {method === "TUNAI" ? (
@@ -379,7 +380,7 @@ export default function KasirPage() {
             </>
           ) : (
             <div className="change-display">
-              {method === "QRIS" ? "Scan QRIS untuk menyelesaikan pembayaran" : "Silakan gesek/tap kartu"}
+              {method === "QRIS" ? "Scan QRIS untuk menyelesaikan pembayaran" : method === "INVOICE" ? "Pembayaran dicatat sebagai tagihan invoice" : "Silakan gesek/tap kartu"}
             </div>
           )}
         </Modal>

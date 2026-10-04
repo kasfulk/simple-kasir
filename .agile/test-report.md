@@ -41,3 +41,14 @@ PASS CSV BOM + kolom / kasir ekspor 200 / CSV produk B 1 baris data
 ## Catatan regression
 - Smoke dijalankan setelah reset DB (db push + seed) tiap iterasi — script smoke bersifat destruktif, disimpan di /tmp lalu dihapus setelah bukti.
 - Kelima temuan review (impor hilang, return 201 hilang, regresi discount/method di body checkout, JSX ui.tsx, cashierName) diperbaiki dan tertutup oleh typecheck+smoke.
+
+## Laporan — Fitur: INVOICE + Logo Struk + Unduh PNG (2026-10-04)
+
+1. Typecheck: `npx tsc --noEmit` → exit 0.
+2. Unit test: `node --test src/lib/core.test.ts` → **8 pass / 0 fail** (termasuk tes baru `parseSettings` logo: valid PNG/JPEG/WebP, tolak non-data-URL, tolak >300.000 char, `null` default) — RED dulu, baru implementasi.
+3. Build: `npm run build` sukses (rebuild bersih setelah dev dihentikan; `.next` sebelumnya terkorupsi karena `next build` berjalan bersamaan dev server — penyebab 500 di `/struk`).
+4. Smoke API produksi :3004 (owner): `PUT /api/settings` logo tersimpan; logo invalid → 400 "Logo harus berkas gambar PNG/JPG/WebP"; `POST /api/transactions` method=INVOICE → 201 (`PAID:4400 CHANGE:0 TOTAL:4400`); `GET ?method=INVOICE` → item `method:"INVOICE"`; ekspor CSV → BOM + header + baris INVOICE.
+5. Smoke browser (Chromium, server produksi): login UI → tambah produk → modal bayar opsi INVOICE + pesan tagihan → "Selesai" → `/struk/<id>`: meta "Invoice", logo tampil, "Bayar Rp 4.400 Kembali Rp 0"; tombol "Unduh Gambar" → file `struk-INV-AE709C36.png` (signature `89 50 4e 47 0d 0a 1a 0a`); `/pengaturan` upload → pratinjau → toast "Pengaturan berhasil disimpan" → logo tersimpan identik dengan struk (`equal:true`, 658 char); opsi INVOICE di filter riwayat; screenshot struk final 87KB.
+6. Cleanup: 2 TX INVOICE uji di-void (200), logo direset `null`, file /tmp dihapus.
+
+Catatan: pratinjau logo kecil di-re-encode JPEG 0.85 (fallback sesuai desain), bukan kegagalan; konsistensi dibuktikan `saved === shown`.

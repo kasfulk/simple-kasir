@@ -10,6 +10,8 @@ import { loyaltyPoints } from "./loyalty.ts";
 import { pointsToRp, usablePoints } from "./loyalty.ts";
 // @ts-expect-error — import extension .ts sah untuk Node type-stripping, tapi tidak untuk tsc bundler
 import { summarize } from "./reports.ts";
+// @ts-expect-error — import extension .ts sah untuk Node type-stripping, tapi tidak untuk tsc bundler
+import { parseSettings } from "./validation.ts";
 
 test("csv: nilai polos", () => {
   assert.equal(toCsv([{ a: 1, b: "x" }]), "a,b\n1,x");
@@ -62,4 +64,16 @@ test("reports: revenue & txCount non-VOID; profit hanya dari item ber-snapshot c
   assert.equal(s.revenue, 11000);
   assert.equal(s.txCount, 1);
   assert.equal(s.profit, 13000); // (45000-32000)*1; item tanpa costPrice dikecualikan dari laba
+});
+
+test("settings: logo divalidasi data URL gambar & dibatasi ukuran", () => {
+  const base = { outletName: "Toko", receiptFooter: "Terima kasih" };
+  assert.deepEqual(parseSettings({ ...base, logo: "data:image/png;base64,AAAA" }), {
+    data: { outletName: "Toko", outletAddress: null, outletPhone: null, taxRate: 10, receiptFooter: "Terima kasih", logo: "data:image/png;base64,AAAA" },
+  });
+  assert.ok("error" in parseSettings({ ...base, logo: "javascript:alert(1)" }));
+  assert.ok("error" in parseSettings({ ...base, logo: "data:image/png;base64," + "A".repeat(400_000) }));
+  assert.deepEqual(parseSettings(base), {
+    data: { outletName: "Toko", outletAddress: null, outletPhone: null, taxRate: 10, receiptFooter: "Terima kasih", logo: null },
+  });
 });
