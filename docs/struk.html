@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Struk - Litensweet Pusat</title>
+<style>
+  :root {
+    --bg: #f3f4f6;
+    --surface: #ffffff;
+    --fg: #111827;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #10b981;
+    --accent-hover: #059669;
+    --danger: #ef4444;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--fg);
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .receipt {
+    background: var(--surface);
+    width: 380px;
+    max-width: 100%;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+
+  .receipt-header {
+    padding: 24px 24px 16px;
+    text-align: center;
+    border-bottom: 2px dashed var(--border);
+  }
+  .receipt-brand {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0 0 4px;
+  }
+  .receipt-branch {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .receipt-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: left;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  .meta-label { font-weight: 600; color: var(--fg); }
+
+  .receipt-body {
+    padding: 20px 24px;
+  }
+
+  .item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .item-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .item-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .item-name {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .item-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .item-line {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .item-qty { color: var(--muted); }
+  .item-price { font-weight: 600; }
+
+  .receipt-summary {
+    padding: 0 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+  .summary-row.total {
+    font-size: 18px;
+    font-weight: 800;
+    padding-top: 12px;
+    border-top: 2px dashed var(--border);
+    margin-top: 4px;
+  }
+  .summary-row.total .amount { color: var(--accent); }
+
+  .payment-section {
+    padding: 20px 24px;
+    border-top: 2px dashed var(--border);
+    background: var(--surface);
+    color: var(--fg);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .payment-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--fg);
+  }
+  .payment-row.paid {
+    font-weight: 700;
+  }
+  .payment-row.change {
+    font-weight: 700;
+  }
+
+  .receipt-footer {
+    padding: 20px 24px;
+    text-align: center;
+    border-top: 2px dashed var(--border);
+    background: var(--surface);
+    color: var(--fg);
+    font-size: 12px;
+  }
+  .receipt-footer p { margin: 4px 0; color: var(--fg); }
+
+  .actions {
+    padding: 16px 24px 24px;
+    display: flex;
+    gap: 10px;
+  }
+  .btn-print {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .btn-print:hover { background: var(--accent-hover); }
+  .btn-close {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--fg);
+    transition: background .15s ease;
+  }
+  .btn-close:hover { background: #f9fafb; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .receipt { box-shadow: none; border-radius: 0; }
+    .actions { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="receipt" data-od-id="receipt">
+  <div class="receipt-header">
+    <h1 class="receipt-brand">Litensweet</h1>
+    <p class="receipt-branch">Pusat</p>
+    <div class="receipt-meta">
+      <div class="meta-row"><span class="meta-label">Kasir</span><span>Kasjful Kurniawan</span></div>
+      <div class="meta-row"><span class="meta-label">Tanggal</span><span>28 Agu 2026, 05:36</span></div>
+      <div class="meta-row"><span class="meta-label">No. Inv</span><span>#INV-34005B03</span></div>
+      <div class="meta-row"><span class="meta-label">Metode</span><span>Tunai</span></div>
+    </div>
+  </div>
+
+  <div class="receipt-body">
+    <div class="item-list">
+      <div class="item-row" data-od-id="item-espresso">
+        <div class="item-name">Espresso Beans 1Kg</div>
+        <div class="item-sub">Robusta 70% Arabika 30%</div>
+        <div class="item-line">
+          <span class="item-qty">7 × Rp 190.000</span>
+          <span class="item-price">Rp 1.330.000</span>
+        </div>
+      </div>
+      <div class="item-row" data-od-id="item-guava">
+        <div class="item-name">Guava Bliss</div>
+        <div class="item-sub">Omni Roast 1kg</div>
+        <div class="item-line">
+          <span class="item-qty">2 × Rp 350.000</span>
+          <span class="item-price">Rp 700.000</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="receipt-summary">
+    <div class="summary-row"><span>Subtotal</span><span>Rp 2.030.000</span></div>
+    <div class="summary-row"><span>Total Produk</span><span>9 pcs</span></div>
+    <div class="summary-row total"><span>Total</span><span class="amount">Rp 2.030.000</span></div>
+  </div>
+
+  <div class="payment-section">
+    <div class="payment-row"><span>Bayar</span><span>Rp 2.030.000</span></div>
+    <div class="payment-row change"><span>Kembali</span><span>Rp 0</span></div>
+  </div>
+
+  <div class="receipt-footer">
+    <p>Terima kasih atas kunjungan Anda</p>
+    <p>Selamat menikmati kopi</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn-print" onclick="window.print()">Cetak Struk</button>
+    <button class="btn-close" onclick="window.close()">Tutup</button>
+  </div>
+</div>
+</body>
+</html>

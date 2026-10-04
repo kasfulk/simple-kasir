@@ -1,0 +1,27 @@
+{
+  "name": "simple-kasir",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.mjs",
+    "db:tenants": "node prisma/tenant-backfill.mjs",
+    "test": "node --test src/lib/core.test.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "next": "15.5.25",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "prisma": "^6.19.3",
+    "typescript": "^5"
+  }
+}
