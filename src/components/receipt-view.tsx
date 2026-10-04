@@ -59,7 +59,7 @@ export function ReceiptView({ t }: { t: ReceiptData }) {
         <div ref={receiptRef} className={`receipt ${paper === "53" ? "receipt-53" : ""}`} style={{ width }}>
           <div className="receipt-header">
             {t.logo && <img className="receipt-logo" src={t.logo} alt={t.outletName} />}
-            <h1 className="receipt-brand">{t.outletName}</h1>
+            {!t.logo && <h1 className="receipt-brand">{t.outletName}</h1>}
             {t.outletAddress ? <p className="receipt-branch">{t.outletAddress}</p> : null}
             <div className="receipt-meta">
               <div className="meta-row">
