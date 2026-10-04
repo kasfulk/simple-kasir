@@ -112,7 +112,9 @@ export const sessionCookieOptions = {
   sameSite: "lax" as const,
   path: "/",
   maxAge: SESSION_TTL,
-  secure: process.env.NODE_ENV === "production",
+  // ponytail: app diakses via HTTP LAN (:30012) — cookie Secure ditolak browser, sesi tak pernah tersimpan.
+  // Set SESSION_COOKIE_SECURE=1 kalau sudah di belakang HTTPS.
+  secure: process.env.SESSION_COOKIE_SECURE === "1",
 };
 
 // ===== Helper server =====

@@ -43,7 +43,17 @@ next-env.d.ts
 # sqlite
 prisma/dev.db
 prisma/dev.db-journal
+# dump/backup DB live — jangan masuk repo publik
+prisma/*.bak
+prisma/*.bak-*
+prisma/*.db.bak*
 
 # internal doc-versioning snapshots (tool state, bukan konten docs)
 docs/.file-versions/
 docs/.od-skills/
+
+# AI tooling assets (dikelola agent)
+!.agents/
+!.agile/
+!.claude/
+!.serena/
