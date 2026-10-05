@@ -138,3 +138,20 @@ export function parseCustomer(b: unknown): Parsed<CustomerData> {
 
   return { data: { name, phone, isActive } };
 }
+
+// Item kasir manual (tidak terdaftar): nama bebas, harga/jumlah angka bulat — tanpa SKU/kategori/stok
+export type ManualItemData = { name: string; price: number; quantity: number };
+
+export function parseManualItem(b: unknown): Parsed<ManualItemData> {
+  const o = asObject(b);
+  const name = String(o.name ?? "").trim();
+  const price = Number(o.price);
+  const quantity = o.quantity == null || o.quantity === "" ? 1 : Number(o.quantity);
+
+  if (!name) return { error: "Nama item wajib diisi" };
+  if (name.length > 100) return { error: "Nama item maksimal 100 karakter" };
+  if (!intGte0(price) || price > 100_000_000) return { error: "Harga harus angka bulat 0-100 juta" };
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) return { error: "Jumlah harus angka bulat 1-999" };
+
+  return { data: { name, price, quantity } };
+}

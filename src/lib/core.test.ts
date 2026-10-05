@@ -12,6 +12,8 @@ import { pointsToRp, usablePoints } from "./loyalty.ts";
 import { summarize } from "./reports.ts";
 // @ts-expect-error — import extension .ts sah untuk Node type-stripping, tapi tidak untuk tsc bundler
 import { parseSettings } from "./validation.ts";
+// @ts-expect-error — import extension .ts sah untuk Node type-stripping, tapi tidak untuk tsc bundler
+import { parseManualItem } from "./validation.ts";
 
 test("csv: nilai polos", () => {
   assert.equal(toCsv([{ a: 1, b: "x" }]), "a,b\n1,x");
@@ -76,4 +78,20 @@ test("settings: logo divalidasi data URL gambar & dibatasi ukuran", () => {
   assert.deepEqual(parseSettings(base), {
     data: { outletName: "Toko", outletAddress: null, outletPhone: null, taxRate: 10, receiptFooter: "Terima kasih", logo: null },
   });
+});
+
+test("manual item: nama/harga/jumlah tervalidasi untuk kasir", () => {
+  assert.deepEqual(parseManualItem({ name: "Ongkir", price: 9000, quantity: 2 }), {
+    data: { name: "Ongkir", price: 9000, quantity: 2 },
+  });
+  assert.deepEqual(parseManualItem({ name: "Barang Bekas", price: 1500 }), {
+    data: { name: "Barang Bekas", price: 1500, quantity: 1 },
+  });
+  assert.ok("error" in parseManualItem({ name: "   ", price: 1, quantity: 1 }));
+  assert.ok("error" in parseManualItem({ name: "x".repeat(101), price: 1, quantity: 1 }));
+  assert.ok("error" in parseManualItem({ name: "x", price: 10.5, quantity: 1 }));
+  assert.ok("error" in parseManualItem({ name: "x", price: -1, quantity: 1 }));
+  assert.ok("error" in parseManualItem({ name: "x", price: 100_000_001, quantity: 1 }));
+  assert.ok("error" in parseManualItem({ name: "x", price: 1, quantity: 0 }));
+  assert.ok("error" in parseManualItem({ name: "x", price: 1, quantity: 1000 }));
 });

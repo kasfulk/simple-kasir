@@ -9,7 +9,7 @@ import type { CategoryWithCount, ProductWithCategory, AppSettings, CustomerRow }
 import { pointsToRp, usablePoints } from "@/lib/loyalty";
 import { getJSON } from "@/lib/fetch";
 
-type CartLine = { productId: string; name: string; price: number; quantity: number; stock: number };
+type CartLine = { productId: string; name: string; price: number; quantity: number; stock: number; manual?: boolean };
 
 
 export default function KasirPage() {
@@ -30,6 +30,10 @@ export default function KasirPage() {
   const [pointsInput, setPointsInput] = useState("");
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
   const [customerId, setCustomerId] = useState("");
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualName, setManualName] = useState("");
+  const [manualPrice, setManualPrice] = useState("");
+  const [manualQty, setManualQty] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -92,6 +96,20 @@ export default function KasirPage() {
 
   const removeLine = (productId: string) => setCart((c) => c.filter((l) => l.productId !== productId));
 
+  const addManual = () => {
+    const name = manualName.trim();
+    const price = Number(manualPrice);
+    const qty = manualQty === "" ? 1 : Number(manualQty);
+    if (!name) return toast("Nama item wajib diisi", "error");
+    if (!Number.isInteger(price) || price < 0) return toast("Harga harus angka bulat >= 0", "error");
+    if (!Number.isInteger(qty) || qty < 1 || qty > 999) return toast("Jumlah harus 1-999", "error");
+    setCart((c) => [...c, { productId: `m-${Date.now()}`, manual: true, name, price, quantity: qty, stock: Number.MAX_SAFE_INTEGER }]);
+    setManualOpen(false);
+    setManualName("");
+    setManualPrice("");
+    setManualQty("");
+  };
+
   const subtotal = cart.reduce((s, l) => s + l.price * l.quantity, 0);
   const taxRate = settings?.taxRate ?? 10;
   const tax = Math.round(subtotal * (taxRate / 100));
@@ -143,7 +161,11 @@ export default function KasirPage() {
           paid,
           points: pointsUsed,
           customerId: customerId || undefined,
-          items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity })),
+          items: cart.map((l) =>
+            l.manual
+              ? { name: l.name, price: l.price, quantity: l.quantity }
+              : { productId: l.productId, quantity: l.quantity }
+          ),
         }),
       });
       const data = await res.json().catch(() => null);
@@ -239,6 +261,9 @@ export default function KasirPage() {
                 </button>
               ))}
           </div>
+          <button className="chip" onClick={() => setManualOpen(true)}>
+            + Item Manual
+          </button>
         </div>
         <div className="product-grid">
           {visible.length === 0 ? (
@@ -383,6 +408,52 @@ export default function KasirPage() {
               {method === "QRIS" ? "Scan QRIS untuk menyelesaikan pembayaran" : method === "INVOICE" ? "Pembayaran dicatat sebagai tagihan invoice" : "Silakan gesek/tap kartu"}
             </div>
           )}
+        </Modal>
+      )}
+
+      {manualOpen && (
+        <Modal
+          title="Tambah Item Manual"
+          onClose={() => setManualOpen(false)}
+          footer={
+            <>
+              <button className="btn btn-secondary" onClick={() => setManualOpen(false)}>
+                Batal
+              </button>
+              <button className="btn btn-primary" onClick={addManual}>
+                Tambahkan
+              </button>
+            </>
+          }
+        >
+          <div className="form-group">
+            <label htmlFor="manual-name">Nama (cth: Ongkir, Barang Lusinan)</label>
+            <input id="manual-name" value={manualName} maxLength={100} onChange={(e) => setManualName(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label htmlFor="manual-price">Harga (Rp)</label>
+            <input
+              id="manual-price"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              placeholder="0"
+              value={manualPrice}
+              onChange={(e) => setManualPrice(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="manual-qty">Jumlah</label>
+            <input
+              id="manual-qty"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              placeholder="1"
+              value={manualQty}
+              onChange={(e) => setManualQty(e.target.value)}
+            />
+          </div>
         </Modal>
       )}
     </div>

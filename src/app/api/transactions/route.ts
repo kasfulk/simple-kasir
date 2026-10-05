@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { bad, json } from "@/lib/api";
 import { getSessionFromRequest } from "@/lib/auth";
 import { loyaltyPoints, pointsToRp } from "@/lib/loyalty";
+import { parseManualItem } from "@/lib/validation";
 
 const METHODS = ["TUNAI", "DEBIT", "QRIS", "INVOICE"] as const; // ponytail: INVOICE = non-tunai lunas (paid=total); sistem piutang/AR terpisah bila nanti dibutuhkan
 
@@ -68,7 +69,16 @@ export async function POST(request: NextRequest) {
       return { productId: String(it.productId ?? ""), quantity: Number(it.quantity) };
     })
     .filter((l) => l.productId && Number.isInteger(l.quantity) && l.quantity >= 1);
-  if (lines.length === 0) return bad("Keranjang kosong");
+  // Item manual (barang tak terdaftar / ongkir): divalidasi langsung, tanpa productId & tanpa stok
+  const manual: { name: string; price: number; quantity: number }[] = [];
+  for (const it of rawItems) {
+    const r = it as Record<string, unknown>;
+    if (r.productId) continue;
+    const m = parseManualItem(r);
+    if ("error" in m) return bad(m.error);
+    manual.push(m.data);
+  }
+  if (lines.length === 0 && manual.length === 0) return bad("Keranjang kosong");
 
   const products = await db.product.findMany({
     where: { id: { in: lines.map((l) => l.productId) }, tenantId: user.tenantId },
@@ -83,6 +93,7 @@ export async function POST(request: NextRequest) {
     if (p.stock < l.quantity) return bad(`Stok ${p.name} tidak mencukupi (sisa ${p.stock})`);
     subtotal += p.price * l.quantity;
   }
+  for (const m of manual) subtotal += m.price * m.quantity;
 
   const discount = o.discount == null || o.discount === "" ? 0 : Number(o.discount);
   if (!Number.isInteger(discount) || discount < 0 || discount > subtotal) {
@@ -162,10 +173,13 @@ export async function POST(request: NextRequest) {
           cashierName: user.name,
           customerId,
           items: {
-            create: lines.map((l) => {
-              const p = byId.get(l.productId)!;
-              return { productId: p.id, name: p.name, price: p.price, costPrice: p.costPrice, quantity: l.quantity };
-            }),
+            create: [
+              ...lines.map((l) => {
+                const p = byId.get(l.productId)!;
+                return { productId: p.id, name: p.name, price: p.price, costPrice: p.costPrice, quantity: l.quantity };
+              }),
+              ...manual.map((m) => ({ productId: null, name: m.name, price: m.price, costPrice: null, quantity: m.quantity })),
+            ],
           },
         },
       });

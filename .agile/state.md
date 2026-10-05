@@ -73,3 +73,20 @@ classification: STANDARD
 - API produksi :3004: PUT logo tersimpan, logo invalid ditolak 400, POST INVOICE 201 (`PAID:4400 CHANGE:0`), filter `?method=INVOICE` + CSV berisi baris INVOICE (diverifikasi sebelum void).
 - Browser: checkout UI INVOICE → struk "Invoice" + logo + "Kembali Rp 0"; unduh PNG asli (signature `89 50 4e 47`, `struk-INV-AE709C36.png`); upload logo via UI → toast → logo tersimpan identik dengan struk (`equal:true`); opsi INVOICE di riwayat; screenshot struk 87KB.
 - Cleanup: 2 TX uji di-void, logo direset `null`, file /tmp dihapus, server dihentikan.
+
+## Fitur — Item manual kasir (2026-10-05)
+
+```yaml
+stage: COMPLETE
+status: DONE
+classification: SMALL
+```
+
+- Kasir bisa tambah barang tak terdaftar (ongkir dll): tombol "+ Item Manual" (`page.tsx`) → modal nama/harga/jumlah → keranjang (`manual: true`, tanpa stok).
+- Server: `parseManualItem` di `lib/validation.ts` (nama 1-100, harga int 0-100jt, qty 1-999); `POST /api/transactions` menerima item tanpa `productId` → disimpan `productId: null, costPrice: null`, tidak memotong stok, void tetap aman (sudah skip `!productId`).
+- TDD: tes `parseManualItem` RED→GREEN di `core.test.ts`.
+
+## Bukti (item manual)
+- node --test 9/9 • tsc --noEmit 0.
+- Smoke API (dev :3000): item manual invalid → 400; mixed cart (produk + Ongkir 2×9000) → 201, subtotal 22000 OK, item `productId:null`; stok produk 35→34 (hanya produk), void → 200, stok kembali 35; manual-only → 201.
+- Cleanup: kedua TX uji di-void.
